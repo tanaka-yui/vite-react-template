@@ -1,0 +1,10 @@
+{
+  "source": ["aws.ecr"],
+  "detail-type": ["ECR Image Action"],
+  "detail": {
+    "action-type": ["PUSH"],
+    "image-tag": ["latest"],
+    "repository-name": ["${repository_name}"],
+    "result": ["SUCCESS"]
+  }
+}

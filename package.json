@@ -1,0 +1,36 @@
+{
+  "name": "development",
+  "version": "0.0.5",
+  "private": true,
+  "scripts": {
+    "build:admin": "pnpm run build --filter ./packages/admin",
+    "build:backend": "pnpm run build --filter ./packages/backend",
+    "dev:admin": "pnpm run dev --filter ./packages/admin",
+    "dev:backend": "pnpm run dev --filter ./packages/backend",
+    "lint:fix": "eslint ./packages/** --ext .jsx,.js,.ts,.tsx --quiet --fix --ignore-path ./.gitignore",
+    "lint:format": "prettier --write \"./packages/**/*.{js,jsx,ts,tsx,css,md,json}\" ",
+    "sort": "sort-package-json 'package.json' sort-package-json './packages/admin/package.json' sort-package-json './packages/backend/package.json'",
+    "start:backend": "pnpm run start --filter ./packages/backend",
+    "update-dependencies": "ncu -u && ncu -u --packageFile ./packages/admin/package.json && ncu -u --packageFile ./packages/backend/package.json",
+    "update-dependencies-check": "ncu && ncu --packageFile ./packages/admin/package.json && ncu -u --packageFile ./packages/backend/package.json"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "5.16.0",
+    "@typescript-eslint/parser": "5.16.0",
+    "eslint": "8.12.0",
+    "eslint-config-prettier": "8.5.0",
+    "eslint-plugin-import": "2.25.4",
+    "eslint-plugin-jsx-a11y": "6.5.1",
+    "eslint-plugin-prettier": "4.0.0",
+    "eslint-plugin-react": "7.29.4",
+    "eslint-plugin-simple-import-sort": "7.0.0",
+    "npm-check-updates": "12.5.4",
+    "prettier": "2.6.1",
+    "sort-package-json": "1.55.0"
+  },
+  "packageManager": "pnpm@6.32.3",
+  "engines": {
+    "node": "17.8.0",
+    "pnpm": "6.32.3"
+  }
+}

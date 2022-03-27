@@ -1,0 +1,94 @@
+name: Deploy-Front
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'dev, prd'
+        required: true
+        type: choice
+        options:
+          - dev
+          - prd
+      service:
+        description: 'admin'
+        required: true
+        type: choice
+        options:
+          - admin
+  workflow_call:
+    inputs:
+      env:
+        description: 'dev, prd'
+        type: string
+        required: true
+      service:
+        description: 'admin'
+        type: string
+        required: true
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_CLOUD_FRONT_DISTRIBUTION_ID:
+        required: true
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        node-version: [17.8.0]
+    env:
+      INPUTS_ENV: ${{ github.event.inputs.env || inputs.env }}
+      INPUTS_SERVICE: ${{ github.event.inputs.service || inputs.service }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: 6.32.3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Module install
+        run: cd front && pnpm i -r
+
+      - name: Build
+        run: |
+          cp packages/${{ env.INPUTS_SERVICE }}/envs/${{ env.INPUTS_ENV }}.env packages/web/${{ env.INPUTS_SERVICE }}/.env
+          pnpm build:${{ env.INPUTS_SERVICE }}
+
+      - name: Configure AWS credentials
+        if: ${{ env.INPUTS_ENV == 'dev' }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV || secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV || secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Configure AWS credentials
+        if: ${{ env.INPUTS_ENV == 'prd' }}
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PRD || secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PRD || secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Sync bundle files to S3
+        run: |
+          aws s3 sync --exact-timestamps --delete ./packages/${{ env.INPUTS_SERVICE }}/dist s3://${{ env.INPUTS_ENV }}-integnance-${{ env.INPUTS_SERVICE }}-front
+
+      - name: CloudFront cache clear
+        if: ${{ env.INPUTS_ENV == 'dev' && env.INPUTS_SERVICE == 'admin' }}
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_CLOUD_FRONT_DISTRIBUTION_ID_ADMIN_DEV || secrets.AWS_CLOUD_FRONT_DISTRIBUTION_ID }} --paths "/*"
+
+      - name: CloudFront cache clear
+        if: ${{ env.INPUTS_ENV == 'prd' && env.INPUTS_SERVICE == 'admin' }}
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_CLOUD_FRONT_DISTRIBUTION_ID_ADMIN_PRD || secrets.AWS_CLOUD_FRONT_DISTRIBUTION_ID }} --paths "/*"

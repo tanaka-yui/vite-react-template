@@ -1,0 +1,3 @@
+packages:
+  - 'packages/admin/**'
+  - 'packages/backend/**'
