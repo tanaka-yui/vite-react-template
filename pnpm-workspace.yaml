@@ -1,3 +1,4 @@
 packages:
-  - 'packages/admin/**'
+  - 'packages/front/**'
   - 'packages/backend/**'
+  - 'packages/shared/**'

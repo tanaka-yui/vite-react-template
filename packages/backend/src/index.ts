@@ -27,7 +27,7 @@ export const createServer = async () => {
 export const startServer = async () => {
   const server = await createServer()
 
-  await server.listen(process.env.API_PORT || 3000, process.env.API_HOST || '0.0.0.0')
+  await server.listen(process.env.API_PORT || 8080, process.env.API_HOST || '0.0.0.0')
 
   process.on('unhandledRejection', (err) => {
     console.error(err)
